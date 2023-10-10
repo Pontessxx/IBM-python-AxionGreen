@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import requests
 import numpy as np
 import pandas as pd
+import json
+
 
 df = pd.read_csv('dados-gas.csv',sep=';')
 
@@ -55,6 +57,7 @@ class AirQualityAnalyzer:
       self.meses = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
       self.dataframes_por_mes = {}
       self.opcao = 0
+      self.valores_led_buzzer = []  # Lista para armazenar valores LED e Buzzer
 
     def exibir_menu(self):
       """
@@ -77,13 +80,14 @@ class AirQualityAnalyzer:
       print("(10) Ver tabela anual")
       print("(0) Sair\n")
 
-
+          
     def classificar_qualidade(self, valor):
       """
       Classifica as leituras visto o mês selecionado.
 
       :param valor: O valor de qualidade do ar a ser classificado.
       :return: A classificação LED e Buzzer correspondentes.
+      :return: JSON qualificação
       """
       classificacoes = {
             (1, 3): ('VERDE', 'Notone'),
@@ -92,7 +96,13 @@ class AirQualityAnalyzer:
             }
       for intervalo, (led, buzzer) in classificacoes.items():
           if intervalo[0] <= valor < intervalo[1]:
+              self.valores_led_buzzer.append({'LED': led, 'Buzzer': buzzer})
               return led, buzzer
+
+    def salvar_valores_led_buzzer(self):
+        # Salvar os valores LED e Buzzer em um arquivo JSON
+        with open('valores_led_buzzer.json', 'w') as json_file:
+            json.dump(self.valores_led_buzzer, json_file)
 
     def validar_input(self, prompt, valor_minimo, valor_maximo):
       """
@@ -443,3 +453,4 @@ if __name__ == "__main__":
   '''
   analyzer =  AirQualityAnalyzer(df)
   analyzer.main()
+  analyzer.salvar_valores_led_buzzer()  # Chama a função para salvar os valores no final da execução
