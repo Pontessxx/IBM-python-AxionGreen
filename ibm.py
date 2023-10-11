@@ -78,6 +78,7 @@ class AirQualityAnalyzer:
       print("(8) Estimar mêses com base de valores 0 a 10")
       print("(9) Informar a região para o banco de dados")
       print("(10) Ver tabela anual")
+      print("(11) Calcular a integral")
       print("(0) Sair\n")
 
           
@@ -250,8 +251,57 @@ class AirQualityAnalyzer:
           _, classificacao = self.classificar_qualidade(valor_desejado)
           print(f"Valor desejado: {valor_desejado}, Mês estimado: {mes_estimado}, Classificação: {classificacao}")
 
+    def calcular_integral(self, df_mes_selecionado):
+      """
+      Calcula a aproximação da integral de uma função usando a regra do ponto médio.
 
+      Args:
+          df_mes_selecionado (DataFrame): O DataFrame do mês selecionado contendo os valores da função.
 
+      Returns:
+          float: A aproximação da integral da função usando a regra do ponto médio.
+      """
+      valores_gas = df_mes_selecionado['valor_do_gas'].tolist()
+      intervalo_tempo = 1  # Intervalo de tempo entre as leituras
+      soma_integral = 0
+
+      for i in range(1, len(valores_gas)):
+          altura_retangulo = valores_gas[i - 1]  # Altura do retângulo (valor do gás)
+          largura_retangulo = intervalo_tempo  # Largura do retângulo (intervalo de tempo)
+          area_retangulo = altura_retangulo * largura_retangulo  # Área do retângulo
+          ponto_medio = (valores_gas[i] + valores_gas[i - 1]) / 2  # Ponto médio da altura
+          soma_integral += ponto_medio * largura_retangulo
+
+      return soma_integral
+
+    def plotar_grafico_historico(self):
+      """
+      Plota um gráfico histórico da qualidade do ar ao longo do mês.
+      """
+      valores_gas = [ar for ar, _ in self.dados_ar]
+      dias = self.dados_dias
+
+      plt.plot(dias, valores_gas, marker='o', color='darkcyan', label='Qualidade do ar')
+      plt.title('Qualidade do ar - Histórico do Mês')
+      plt.xlabel('Dias')
+      plt.ylabel('Valor')
+      plt.xticks(rotation=45)
+      plt.legend()
+      plt.grid()
+      plt.show()
+
+      # Calcula a tendência da qualidade do ar
+      primeira_leitura = valores_gas[0]
+      ultima_leitura = valores_gas[-1]
+
+      if primeira_leitura < ultima_leitura:
+          tendencia = "melhorando"
+      elif primeira_leitura > ultima_leitura:
+          tendencia = "piorando"
+      else:
+          tendencia = "mantendo-se constante"
+
+      print(f"Tendência da qualidade do ar ao longo do mês: {tendencia}")
 
     def plotar_grafico_qualidade(self):
       """
@@ -362,6 +412,7 @@ class AirQualityAnalyzer:
       print("(8) Estimar mêses com base de valores 0 a 10")
       print("(9) Informar a região para o banco de dados")
       print("(10) Ver tabela anual")
+      print("(11) Calcular integral")
       print("(0) Sair\n")
 
     def informar_regiao(self):
@@ -405,7 +456,7 @@ class AirQualityAnalyzer:
       '''
       self.exibir_menu()
 
-      while self.opcao != 11:
+      while self.opcao != 12:
           self.opcao = int(input('Opção: '))
           print('\n')
           if self.opcao == 1:
@@ -437,6 +488,14 @@ class AirQualityAnalyzer:
               self.informar_regiao()
           elif self.opcao == 10:
               self.tabela_anual()
+          elif self.opcao == 11:
+            if self.dados_ar:
+                integral = self.calcular_integral(df_mes_selecionado)
+                print(f"Aproximação da integral usando a regra do ponto médio: {integral}")
+                self.plotar_grafico_historico()
+            else:
+                print('Selecione a opção 1 antes de realizar.')
+                print("Selecione um mês e insira os valores antes de calcular a integral.")
           elif self.opcao == 0:
               print('Obrigado por testar nosso codigo!')
               print('.'*30)
